@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<!-- saved from url=(0028)https://ocean-six.github.io/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="calc bank card number">
+  <title>爱算号</title>
+  <!-- css -->
+  <link rel="stylesheet" href="./ish/bootstrap.min.css">
+  <link rel="stylesheet" href="./ish/simple.css">
+
+  <style type="text/css">
+    body {
+      margin: 14px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #main {
+      width: 100%;
+      margin: 0 auto;
+      max-width: 960px;
+    }
+
+    #card-length {
+      min-width: 36px;
+      padding: 6px 6px;
+      text-align: center;
+      display: inline-block;
+    }
+
+    /* CSS for card result */
+    .card-green {
+      color: green;
+    }
+
+    .card-blue {
+      color: blue;
+    }
+
+    .form-group-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      /* 控制列和行之间的间距 */
+    }
+
+    .card-red {
+      color: red;
+    }
+
+    /* 添加一个名为 result-div 的 CSS 类，用于修改结果 div 的样式 */
+    .result-div {
+      color: #007bff;
+      /* 设置文本颜色为蓝色 */
+    }
+
+
+
+    /* 按钮状态 */
+    #copyAllButton.copying {
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(0.95);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* 加载动画 */
+    .spinner-border {
+      vertical-align: -0.15em;
+      border-width: 0.15em;
+    }
+
+    /* 成功状态 */
+    .btn-success {
+      background-color: #28a745 !important;
+      border-color: #28a745 !important;
+    }
+
+    /* 错误状态 */
+    .btn-warning {
+      background-color: #ffc107 !important;
+      border-color: #ffc107 !important;
+    }
+
+    #usageButton {
+      background-color: #87ceeb;
+      /* 将按钮背景色设置为天蓝色 */
+      border-color: #87ceeb;
+      /* 边框颜色也设置为天蓝色 */
+    }
+
+    #usageButton:focus {
+      outline: none;
+      /* 移除按钮的默认聚焦样式 */
+      box-shadow: none;
+    }
+    .footer {
+  position: fixed;
+  bottom: 0px;
+  left: 50%;
+  padding-bottom: 28px;
+  padding-top: 12px;
+  transform: translateX(-50%);
+  width: 90%;
+  background: rgba(255, 255, 255, 0.5); /* 半透明背景 */
+  backdrop-filter: blur(10px);          /* 高斯模糊 */
+  -webkit-backdrop-filter: blur(10px);  /* 兼容 Safari */
+}
+.check-num {
+  width: 10%;
+  height: 34px;
+  margin-top: 10px;
+  margin-right: 20px;
+}
+  </style>
+</head>
+
+<body>
+  <script src="./ish/json.js"></script>
+  <script src="./ish/regions.js"></script>
+  <script src="./ish/cmb.js"></script>
+  <script src="./ish/spdb.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="./ish/mask.js"></script>
+  <script type="text/javascript" charset="UTF-8">
+    var mask = new Mask();
+    mask.show();
+  </script><div style="position: fixed; inset: 0px; z-index: 1000; background-color: rgb(245, 245, 245); display: none;"></div>
+
+  <div id="main">
+    <h1 style="text-align: center; margin-top: 20px;">💳 爱算号 💳</h1>
+    <p id="prompt-info" style="text-align: center; color: gray;">根据输入的数字、字母及 * 号<br>生成满足 Luhn 算法的银行卡号，用于卡号定制算号</p>
+    <div class="input-group mb-3" ">
+      <div class="input-group-text" id="card-length" style="line-height: 32px; color: gray;">@</div>
+      <input class="form-control form-control-lg" type="text" id="card" placeholder="请输入卡号">
+      <button class="btn btn-primary" type="button" id="clear-btn" onclick="clearInput()" style="width: 80px;">清空</button>
+    <!-- 清空按钮 -->
+    </div>
+    <table style="border: 0; margin-bottom: 12px;">
+    <tr>
+      <td><div id="result" class="result-div" ></div></td>
+      <td><div class="alert" role="alert" style="padding:0 12px; margin: 0;"></div></td>
+      </tr>
+    </table>
+
+
+    <div class="form-group" style="border: 1px solid #eee; margin-top:12px; border-radius: 12px;">
+      <table >
+        <tr>
+          <td colspan="2"> 
+            <div class="form-group" style="padding: 12px 18px;">
+      <label for="filterLength">过滤卡号后
+        <select class="form-control" id="filterLength" style="display:inline-block; width:auto; style="margin: 0 12px;"">
+        <option value="0">0</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+  
+      </select>
+      位不包含4</label>
+    </div>
+  <div style="border-bottom: 1px solid #eee;"></div>
+  </td>
+        </tr>
+        <tr>
+          <td style="width:35%; text-align:center;"><label for="digitsCount">后 
+        <select id="digitsCount" class="form-control" style="display: inline-block; width: auto;">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select> 位包含<br>以下数字</label></td>
+          <td style="width: 65%;">
+ <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit0" value="0">
+        <label class="form-check-label" for="digit0">0</label>
+      </div>
+      <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit1" value="1">
+        <label class="form-check-label" for="digit1">1</label>
+      </div>
+      <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit2" value="2">
+        <label class="form-check-label" for="digit2">2</label>
+      </div>
+      <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit3" value="3">
+        <label class="form-check-label" for="digit3">3</label>
+      </div>
+      <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit4" value="4">
+        <label class="form-check-label" for="digit4">4</label>
+      </div>
+      <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit5" value="5">
+        <label class="form-check-label" for="digit5">5</label>
+      </div>
+      <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit6" value="6">
+        <label class="form-check-label" for="digit6">6</label>
+      </div>
+      <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit7" value="7">
+        <label class="form-check-label" for="digit7">7</label>
+      </div>
+      <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit8" value="8">
+        <label class="form-check-label" for="digit8">8</label>
+      </div>
+      <div class="form-check form-check-inline check-num">
+        <input class="form-check-input" type="checkbox" id="digit9" value="9">
+        <label class="form-check-label" for="digit9">9</label>
+      </div>
+
+          </td>
+        </tr>
+      </table>
+      
+     
+    </div>
+
+    <p></p>
+    <div class="form-group-container" style="display: none;">
+      <div class="form-group">
+        <input type="checkbox" id="regionCodeCheckbox1">
+        <label for="regionCodeCheckbox1">使用交通地区码</label>
+      </div>
+      <div class="form-group">
+        <input type="checkbox" id="cmbCodeCheckbox">
+        <label for="cmbCodeCheckbox">使用招行地区码</label>
+      </div>
+      <div class="form-group">
+        <input type="checkbox" id="regionCodeCheckbox2">
+        <label for="regionCodeCheckbox2">使用中行地区码</label>
+      </div>
+      <div class="form-group">
+        <input type="checkbox" id="regionCodeCheckbox3">
+        <label for="regionCodeCheckbox3">使用浦发地区码</label>
+      </div>
+      <div class="form-group">
+        <label for="cmbRegionSelect">招行地区码：</label>
+        <select class="form-control" id="cmbRegionSelect">
+          <option value="">请选择</option>
+          <!-- 选项将通过JavaScript动态添加 -->
+        <option value="北京">北京</option><option value="天津">天津</option><option value="滨海">滨海</option><option value="呼和浩特">呼和浩特</option><option value="石家庄">石家庄</option><option value="包头">包头</option><option value="太原">太原</option><option value="鄂尔多斯">鄂尔多斯</option><option value="晋城">晋城</option><option value="呼伦贝尔">呼伦贝尔</option><option value="朔州">朔州</option><option value="沈阳">沈阳</option><option value="大连">大连</option><option value="锦州">锦州</option><option value="盘锦">盘锦</option><option value="鞍山">鞍山</option><option value="长春">长春</option><option value="丹东">丹东</option><option value="通化">通化</option><option value="营口">营口</option><option value="哈尔滨">哈尔滨</option><option value="上海">上海</option><option value="南京">南京</option><option value="无锡">无锡</option><option value="江阴">江阴</option><option value="南通">南通</option><option value="宜兴">宜兴</option><option value="扬州">扬州</option><option value="徐州">徐州</option><option value="江都">江都</option><option value="常州">常州</option><option value="镇江">镇江</option><option value="苏州">苏州</option><option value="杭州">杭州</option><option value="宁波">宁波</option><option value="温州">温州</option><option value="泰州">泰州</option><option value="瑞安">瑞安</option><option value="合肥">合肥</option><option value="嘉兴">嘉兴</option><option value="安庆">安庆</option><option value="湖州">湖州</option><option value="芜湖">芜湖</option><option value="绍兴">绍兴</option><option value="淮南">淮南</option><option value="金华">金华</option><option value="马鞍山">马鞍山</option><option value="衢州">衢州</option><option value="淮北">淮北</option><option value="台州">台州</option><option value="福州">福州</option><option value="厦门">厦门</option><option value="莆田">莆田</option><option value="长沙">长沙</option><option value="泉州">泉州</option><option value="株洲">株洲</option><option value="漳州">漳州</option><option value="湘潭">湘潭</option><option value="龙岩">龙岩</option><option value="衡阳">衡阳</option><option value="南昌">南昌</option><option value="娄底">娄底</option><option value="九江">九江</option><option value="淄博">淄博</option><option value="赣州">赣州</option><option value="上饶">上饶</option><option value="烟台">烟台</option><option value="济南">济南</option><option value="潍坊">潍坊</option><option value="聊城">聊城</option><option value="济宁">济宁</option><option value="青岛">青岛</option><option value="威海">威海</option><option value="日照">日照</option><option value="临沂">临沂</option><option value="洛阳">洛阳</option><option value="滨州">滨州</option><option value="安阳">安阳</option><option value="郑州">郑州</option><option value="武汉">武汉</option><option value="黄石">黄石</option><option value="十堰">十堰</option><option value="孝感">孝感</option><option value="宜昌">宜昌</option><option value="黄冈">黄冈</option><option value="襄阳">襄阳</option><option value="广州">广州</option><option value="总行">总行</option><option value="深圳">深圳</option><option value="珠海">珠海</option><option value="惠州">惠州</option><option value="江门">江门</option><option value="佛山">佛山</option><option value="湛江">湛江</option><option value="中山">中山</option><option value="清远">清远</option><option value="东莞">东莞</option><option value="南宁">南宁</option><option value="柳州">柳州</option><option value="重庆">重庆</option><option value="成都">成都</option><option value="泸州">泸州</option><option value="绵阳">绵阳</option><option value="昆明">昆明</option><option value="乐山">乐山</option><option value="曲靖">曲靖</option><option value="贵阳">贵阳</option><option value="丽江">丽江</option><option value="遵义">遵义</option><option value="红河">红河</option><option value="宝鸡">宝鸡</option><option value="西安">西安</option><option value="咸阳">咸阳</option><option value="榆林">榆林</option><option value="三明">三明</option><option value="抚顺">抚顺</option><option value="兰州">兰州</option><option value="六盘水">六盘水</option><option value="连云港">连云港</option><option value="西宁">西宁</option><option value="景德镇">景德镇</option><option value="吉林">吉林</option><option value="银川">银川</option><option value="三亚">三亚</option><option value="大庆">大庆</option><option value="乌鲁木齐">乌鲁木齐</option><option value="宁德">宁德</option><option value="盐城">盐城</option><option value="海口">海口</option><option value="廊坊">廊坊</option><option value="昆山">昆山</option><option value="香港">香港</option><option value="吕梁">吕梁</option><option value="六安">六安</option><option value="唐山">唐山</option><option value="许昌">许昌</option><option value="舟山">舟山</option><option value="雄安">雄安</option><option value="南阳">南阳</option><option value="荆州">荆州</option><option value="石河子">石河子</option><option value="北京">北京</option><option value="天津">天津</option><option value="滨海">滨海</option><option value="呼和浩特">呼和浩特</option><option value="石家庄">石家庄</option><option value="包头">包头</option><option value="太原">太原</option><option value="鄂尔多斯">鄂尔多斯</option><option value="晋城">晋城</option><option value="呼伦贝尔">呼伦贝尔</option><option value="朔州">朔州</option><option value="沈阳">沈阳</option><option value="大连">大连</option><option value="锦州">锦州</option><option value="盘锦">盘锦</option><option value="鞍山">鞍山</option><option value="长春">长春</option><option value="丹东">丹东</option><option value="通化">通化</option><option value="营口">营口</option><option value="哈尔滨">哈尔滨</option><option value="上海">上海</option><option value="南京">南京</option><option value="无锡">无锡</option><option value="江阴">江阴</option><option value="南通">南通</option><option value="宜兴">宜兴</option><option value="扬州">扬州</option><option value="徐州">徐州</option><option value="江都">江都</option><option value="常州">常州</option><option value="镇江">镇江</option><option value="苏州">苏州</option><option value="杭州">杭州</option><option value="宁波">宁波</option><option value="温州">温州</option><option value="泰州">泰州</option><option value="瑞安">瑞安</option><option value="合肥">合肥</option><option value="嘉兴">嘉兴</option><option value="安庆">安庆</option><option value="湖州">湖州</option><option value="芜湖">芜湖</option><option value="绍兴">绍兴</option><option value="淮南">淮南</option><option value="金华">金华</option><option value="马鞍山">马鞍山</option><option value="衢州">衢州</option><option value="淮北">淮北</option><option value="台州">台州</option><option value="福州">福州</option><option value="厦门">厦门</option><option value="莆田">莆田</option><option value="长沙">长沙</option><option value="泉州">泉州</option><option value="株洲">株洲</option><option value="漳州">漳州</option><option value="湘潭">湘潭</option><option value="龙岩">龙岩</option><option value="衡阳">衡阳</option><option value="南昌">南昌</option><option value="娄底">娄底</option><option value="九江">九江</option><option value="淄博">淄博</option><option value="赣州">赣州</option><option value="上饶">上饶</option><option value="烟台">烟台</option><option value="济南">济南</option><option value="潍坊">潍坊</option><option value="聊城">聊城</option><option value="济宁">济宁</option><option value="青岛">青岛</option><option value="威海">威海</option><option value="日照">日照</option><option value="临沂">临沂</option><option value="洛阳">洛阳</option><option value="滨州">滨州</option><option value="安阳">安阳</option><option value="郑州">郑州</option><option value="武汉">武汉</option><option value="黄石">黄石</option><option value="十堰">十堰</option><option value="孝感">孝感</option><option value="宜昌">宜昌</option><option value="黄冈">黄冈</option><option value="襄阳">襄阳</option><option value="广州">广州</option><option value="总行">总行</option><option value="深圳">深圳</option><option value="珠海">珠海</option><option value="惠州">惠州</option><option value="江门">江门</option><option value="佛山">佛山</option><option value="湛江">湛江</option><option value="中山">中山</option><option value="清远">清远</option><option value="东莞">东莞</option><option value="南宁">南宁</option><option value="柳州">柳州</option><option value="重庆">重庆</option><option value="成都">成都</option><option value="泸州">泸州</option><option value="绵阳">绵阳</option><option value="昆明">昆明</option><option value="乐山">乐山</option><option value="曲靖">曲靖</option><option value="贵阳">贵阳</option><option value="丽江">丽江</option><option value="遵义">遵义</option><option value="红河">红河</option><option value="宝鸡">宝鸡</option><option value="西安">西安</option><option value="咸阳">咸阳</option><option value="榆林">榆林</option><option value="三明">三明</option><option value="抚顺">抚顺</option><option value="兰州">兰州</option><option value="六盘水">六盘水</option><option value="连云港">连云港</option><option value="西宁">西宁</option><option value="景德镇">景德镇</option><option value="吉林">吉林</option><option value="银川">银川</option><option value="三亚">三亚</option><option value="大庆">大庆</option><option value="乌鲁木齐">乌鲁木齐</option><option value="宁德">宁德</option><option value="盐城">盐城</option><option value="海口">海口</option><option value="廊坊">廊坊</option><option value="昆山">昆山</option><option value="香港">香港</option><option value="吕梁">吕梁</option><option value="六安">六安</option><option value="唐山">唐山</option><option value="许昌">许昌</option><option value="舟山">舟山</option><option value="雄安">雄安</option><option value="南阳">南阳</option><option value="荆州">荆州</option><option value="石河子">石河子</option></select>
+      </div>
+    </div>
+
+    <p></p>
+
+
+    <div id="rslt" style="font-size: 22px; line-height: 32px; padding-left: 44px;"></div>
+     <div class="result-p footer">
+      <p style="text-align: center;"><span id="validText">已输入有效位数：</span><span id="validCount">--</span></p>
+      <button id="usageButton" class="btn btn-lg btn-danger" style="float: left; width: 48%;">使用说明</button>
+      <button id="copyAllButton" class="btn btn-lg btn-danger" style="float: right; width: 48%;">一键复制</button>
+     </div>
+  </div>
+  <!-- JS Libraries -->
+  <script src="./ish/jquery.min.js"></script>
+  <script src="./ish/toptip.js"></script>
+  <script src="./ish/simple.js"></script>
+  <script src="./ish/explain.js" type="text/javascript"></script>
+  <script src="./ish/luhn.js"></script>
+  <script src="./ish/card_util.js"></script>
+  <script src="./ish/card_num.js"></script>
+  <script>
+    function clearInput () {
+      document.getElementById('card').value = ''; // 清空输入框内容
+    }
+
+
+    function search () {
+      const searchValue = document.getElementById('card').value.replace(/\s/g, '').trim().toLowerCase().substring(0, 6); // 去除所有空白字符并保留前六位
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '';
+
+      if (searchValue.length < 6) {
+        return; // 如果输入字符数小于四位，不执行搜索操作
+      }
+
+      let found = false;
+      let resultString = ''; // 存储搜索结果的字符串
+
+      excelData.forEach(item => {
+        const bankNoStr = item.bank_no.toString();
+        if (bankNoStr.startsWith(searchValue)) {
+          if (found) {
+            resultString += ', '; // 在结果之间添加逗号分隔
+          }
+          resultString += item.bank_name; // 将银行名称添加到结果字符串中
+          found = true;
+        }
+      });
+
+      if (found) {
+        resultDiv.innerHTML = resultString; // 将结果字符串设置为结果 div 的内容
+      } else {
+        resultDiv.innerHTML = 'No results found';
+      }
+    }
+    function initCmbRegions () {
+      const select = document.getElementById('cmbRegionSelect');
+      Object.keys(regionCodes).forEach(region => {
+        const option = document.createElement('option');
+        option.value = region;
+        option.textContent = region;
+        select.appendChild(option);
+      });
+    }
+    initCmbRegions();
+    // 监听输入事件
+    document.getElementById('card').addEventListener('input', search);
+    // 在最后的<script>标签内添加
+    document.getElementById('copyAllButton').addEventListener('click', function () {
+      try {
+        // 获取所有生成的卡号
+        const preElements = document.querySelectorAll('#rslt pre');
+        const allCards = Array.from(preElements)
+          .map(pre => pre.textContent.trim())
+          .join('\n');
+
+        if (!allCards) {
+          toptip.show('没有可复制的内容');
+          return;
+        }
+
+        // 使用现代剪贴板API
+        navigator.clipboard.writeText(allCards).then(() => {
+          toptip.show('复制成功！');
+        }).catch(err => {
+          console.error('复制失败:', err);
+          toptip.show('复制失败，请手动选择复制');
+        });
+      } catch (err) {
+        console.error('复制错误:', err);
+        toptip.show('复制功能不可用');
+      }
+    });
+    document.getElementById('copyAllButton').addEventListener('click', async function () {
+      const btn = this;
+      try {
+        // 添加按钮状态
+        btn.classList.add('copying');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 复制中...';
+
+        const preElements = document.querySelectorAll('#rslt pre');
+        // ...原有复制逻辑保持不变...
+        const allCards = Array.from(preElements)
+          .map(pre => {
+            // 移除可能存在的地区码注释
+            return pre.textContent.replace(/$.*?$/g, '').trim();
+          })
+          .filter(text => text.length > 0)
+          .join('\n');
+
+        if (!allCards) {
+          toptip.show('没有可复制的内容');
+          return;
+        }
+        // 成功状态
+        btn.classList.remove('btn-danger', 'copying');
+        btn.classList.add('btn-success');
+        btn.innerHTML = '✓ 复制成功';
+
+        // 2秒后恢复原始状态
+        setTimeout(() => {
+          btn.classList.remove('btn-success');
+          btn.classList.add('btn-danger');
+          btn.innerHTML = '一键复制';
+        }, 2000);
+
+      } catch (err) {
+        // 错误状态
+        btn.classList.remove('btn-danger', 'copying');
+        btn.classList.add('btn-warning');
+        btn.innerHTML = '✕ 复制失败';
+
+        setTimeout(() => {
+          btn.classList.remove('btn-warning');
+          btn.classList.add('btn-danger');
+          btn.innerHTML = '一键复制';
+        }, 2000);
+      }
+    });
+  </script>
+
+
+
+<div id="w-simple-top-tip" style="word-break: break-all; color: #222; font-size: 16px; display: none; position: fixed; z-index: 9999; opacity: 0.9; filter: alpha(opacity=90); text-align: center; width: 100%; top: 0px; left: 0px;">	<div id="w-simple-top-tip-container" style="display: inline-block; margin: 0px 10px; background-color: #f9edbe; padding: 0px 5px 0px 10px; border: 1px solid #f0c36d; border-radius: 2px; -webkit-border-radius: 2px;-webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.2); box-shadow: 0 2px 4px rgba(0,0,0,0.2);">		<span id="w-simple-top-tip-msg">msg</span>&nbsp;&nbsp;<span id="w-simple-top-tip-close" style="font-size: 14px; cursor: pointer; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff;opacity: 0.4; filter: alpha(opacity=40);">×</span>	</div></div></body></html>
